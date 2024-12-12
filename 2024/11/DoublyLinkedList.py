@@ -5,6 +5,14 @@ class Node:
         self.next = None
 
 class DoublyLinkedList:
+    @classmethod
+    def build_from_string(cls, string : str):
+        list = DoublyLinkedList()
+        splited = string.split(" ")
+        for element in splited:
+            list.append(int(element))
+        return list
+
     def __init__(self):
         self.head = None
 
