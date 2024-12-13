@@ -8,7 +8,8 @@ class Space():
             "right": None
         }
         self.visited = False
-        self.border = None
+        self.border = []
+        self.bulk_border = []
 
     def add_neighbor(self, direction, neighbor):
         self.neighbors[direction] = neighbor
@@ -17,18 +18,34 @@ class Space():
         self.visited = True
     
     def get_border(self):
-        if self.border is None:
-            self.border = 4 - len(self.same_color_neighbor())
+        if self.border is []:
+            for key in self.neighbors.keys():
+                if self.neighbors[key] == None or self.neighbors[key].color != self.color:
+                    self.border.append(key)
         return self.border
     
     def same_color_neighbor(self):
-        neighbors = []
-        for neighbor in self.neighbors.values():
-            if neighbor != None and neighbor.color == self.color:
-                neighbors.append(neighbor)
-        self.border = 4 - len(neighbors)
+        neighbors = {}
+        for key in self.neighbors.keys():
+            if self.neighbors[key] != None and self.neighbors[key].color == self.color:
+                neighbors[key] = self.neighbors[key]
+            else :
+                if key not in self.border:
+                    self.border.append(key)
         return neighbors
-        
+    
+    def get_bulk_border(self):
+        self.bulk_border = []
+        same_color_neighbors = self.same_color_neighbor()
+        for key in self.get_border():
+            if key == "up" or key == "down":
+                if ((("left" in same_color_neighbors and (not same_color_neighbors["left"].visited or key not in same_color_neighbors["left"].get_border())) or "left" not in same_color_neighbors.keys()) and
+                    (("right" in same_color_neighbors and (not same_color_neighbors["right"].visited or key not in same_color_neighbors["right"].get_border())) or "right" not in same_color_neighbors.keys())):
+                        self.bulk_border.append(key)
+            elif key == "left" or key == "right":
+                if ((("up" in same_color_neighbors and (not same_color_neighbors["up"].visited or key not in same_color_neighbors["up"].get_border())) or "up" not in same_color_neighbors.keys()) and
+                    (("down" in same_color_neighbors and (not same_color_neighbors["down"].visited or key not in same_color_neighbors["down"].get_border())) or "down" not in same_color_neighbors.keys())):
+                        self.bulk_border.append(key)
 
     def __str__(self):
         return f"{self.color}, neighbors: {self.neighbors}"
@@ -88,7 +105,22 @@ class Map():
         for zone in self.zones:
             border = 0
             for space in zone:
-                border += space.get_border()
+                border += len(space.get_border())
+            cost += border * len(zone)
+        return cost
+
+    def get_discounted_cost(self):
+        self.unvisit_all()
+        for line in self.spaces:
+            for space in line:
+                if space is not None and not space.visited:
+                    space.get_bulk_border()
+                    space.visit()
+        cost = 0
+        for zone in self.zones:
+            border = 0
+            for space in zone:
+                border += len(space.bulk_border)
             cost += border * len(zone)
         return cost
     
@@ -103,7 +135,7 @@ class Map():
 def create_zone_rec(space : Space, zone : list):
     zone.append(space)
     space.visit()
-    for neighbor in space.same_color_neighbor():
+    for neighbor in space.same_color_neighbor().values():
         if not neighbor.visited :
             zone = create_zone_rec(neighbor, zone)
     return zone
