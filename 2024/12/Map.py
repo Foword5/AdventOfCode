@@ -8,7 +8,7 @@ class Space():
             "right": None
         }
         self.visited = False
-        self.border = 0
+        self.border = None
 
     def add_neighbor(self, direction, neighbor):
         self.neighbors[direction] = neighbor
@@ -16,19 +16,22 @@ class Space():
     def visit(self):
         self.visited = True
     
-    def set_border(self):
-        self.border = 4 - len(self.same_color_neighbor())
+    def get_border(self):
+        if self.border is None:
+            self.border = 4 - len(self.same_color_neighbor())
+        return self.border
     
     def same_color_neighbor(self):
         neighbors = []
         for neighbor in self.neighbors.values():
-            if neighbor is None and neighbor.color == self.color:
+            if neighbor != None and neighbor.color == self.color:
                 neighbors.append(neighbor)
+        self.border = 4 - len(neighbors)
         return neighbors
         
 
     def __str__(self):
-        return f"{self.color}"
+        return f"{self.color}, neighbors: {self.neighbors}"
 
 class Map():
     @classmethod
@@ -77,19 +80,27 @@ class Map():
         for y, line in enumerate(self.spaces):
             for x, space in enumerate(line):
                 if space is not None and not space.visited:
-                    zone = self.get_zone(x, y)
+                    zone = create_zone_rec(space, [])
                     self.zones.append(zone)
+
+    def get_cost(self):
+        cost = 0
+        for zone in self.zones:
+            border = 0
+            for space in zone:
+                border += space.get_border()
+            cost += border * len(zone)
+        return cost
     
     def __str__(self):
         string = ""
         for line in self.spaces :
             for space in line:
-                string += str(space)
+                string += str(space.color)
             string += "\n"
         return string
     
 def create_zone_rec(space : Space, zone : list):
-    space.color = "*"
     zone.append(space)
     space.visit()
     for neighbor in space.same_color_neighbor():
