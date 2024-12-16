@@ -4,53 +4,54 @@ import time
 INPUT_FILE = 'input.txt'
 TEST_FILE = 'test_input.txt'
 
+def solve_doube_unknown_equation(total1, factor1a, factor1b, total2, factor2a, factor2b):
+    total3 = total1 * factor2a
+    factor3a = factor1a * factor2a
+    factor3b = factor1b * factor2a
+    # print(f"{total3} = {factor3a}*a + {factor3b}*b")
+    
+    total4 = total2 * factor1a
+    factor4a = factor2a * factor1a
+    factor4b = factor2b * factor1a
+    # print(f"{total4} = {factor4a}*a + {factor4b}*b")
+    
+    total34 = total3 - total4
+    factor34a = factor3a - factor4a
+    factor34b = factor3b - factor4b
+    # print(f"{total34} = {factor34a}*a + {factor34b}*b")
+    
+    b = total34 / factor34b
+    # print(f"b = {b}")
+    
+    a = (total1 - b * factor1b) / factor1a
+    # print(f"a = {a}")
+    
+    return a, b
+
 if __name__ == '__main__':
     machines = []
-    with open(TEST_FILE, 'r') as f:
+    with open(INPUT_FILE, 'r') as f:
         lines = f.readlines()
         for i in range(0, len(lines), 4):
             machines.append(Machine.from_string(lines[i:i+3]))
             
     start = time.time()
     
-    x = 10000000008400
-    # x = 8400
-    ax = 94
-    bx = 22
+    cost = 0
+    for machine in machines:
+        machine.fix_coords()
+        total1 = machine.x
+        factor1a = machine.buttonA.x
+        factor1b = machine.buttonB.x
+        total2 = machine.y
+        factor2a = machine.buttonA.y
+        factor2b = machine.buttonB.y
+        a, b = solve_doube_unknown_equation(total1, factor1a, factor1b, total2, factor2a, factor2b)
+        if not (a.is_integer() and b.is_integer()):
+            continue
+        a = int(a)
+        b = int(b)
+        cost += machine.buttonA.price * a + machine.buttonB.price * b
     
-    y = 10000000005400
-    # y = 5400
-    ay = 34
-    by = 67
-    
-    # nba = 10000000008400//ax + 2
-    # nbb = 0
-    
-    # while nba*ax + nbb*bx != x:
-    #     nba -= 1
-    #     while nba*ax + nbb*bx < x:
-    #         nbb += 1
-
-    nba = x//ax + 2
-    nbb = 0
-
-    while nba*ay + nbb*by != y or nba*ax + nbb*bx != x:
-        print(nba*ay + nbb*by, nba*ax + nbb*bx)
-        if nba*ay + nbb*by < y:
-            nbb += abs(y - (nba*ay + nbb*by)) // by
-            nba -= abs(y - (nba*ay + nbb*by)) // ay
-        elif nba*ay + nbb*by > y:
-            nbb -= abs(y - (nba*ay + nbb*by)) // by
-            nba += abs(y - (nba*ay + nbb*by)) // ay
-            
-        if nba*ax + nbb*bx < x:
-            nbb -= abs(x - (nba*ax + nbb*bx)) // bx
-            nba += abs(x - (nba*ax + nbb*bx)) // ax
-        elif nba*ax + nbb*bx > x:
-            nba -= abs(x - (nba*ax + nbb*bx)) // ax
-            nbb += abs(x - (nba*ax + nbb*bx)) // bx
-    
-    print(nba*ax + nbb*bx, nba*ay + nbb*by)
-        
+    print(cost)
     end = time.time()
-    
