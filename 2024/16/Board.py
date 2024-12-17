@@ -12,10 +12,12 @@ class Board():
                     if char == "S":
                         newBoard.start = (x, y)
                         newLine.append(Vertex(x, y, char, 0, ">"))
+                        newBoard.all_vertices.append(newLine[-1])
                         continue
                     if char == "E":
                         newBoard.end = (x, y)
                     newLine.append(Vertex(x, y, char))
+                    newBoard.all_vertices.append(newLine[-1])
                 newBoard.board.append(newLine)
         
         for y in range(newBoard.height):
@@ -43,6 +45,7 @@ class Board():
                 self.board[y][x].neighbors[">"] = neighbor
 
     def __init__(self, height, width):
+        self.all_vertices = []
         self.height = height
         self.width = width
         self.board = []
@@ -53,6 +56,16 @@ class Board():
         string = f'Height: {self.height}\nWidth: {self.width}\nStart: {self.start}\nEnd: {self.end}\n'
         string += "\n".join(["".join([space.char for space in line]) for line in self.board])
         return string
+
+    def copy(self):
+        newBoard = Board(self.height, self.width)
+        newBoard.all_vertices = [vertex for vertex in self.all_vertices]
+        newBoard.board = [line for line in self.board]
+        newBoard.start = self.start
+        newBoard.end = self.end
+        newBoard.height = self.height
+        newBoard.width = self.width
+        return newBoard
 
 class Vertex():
     def __init__(self, x, y, char, dist = float("inf"), direction = None):
